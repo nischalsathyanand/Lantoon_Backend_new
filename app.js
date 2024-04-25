@@ -32,43 +32,62 @@ app.get("/home",(req,res) =>
 // Endpoint to get all languages
 app.get("/api/v1/languages", async (req, res) => {
   try {
-    const languages = await Language.find(); // Retrieve all languages from MongoDB
-    res.status(200).json(languages); // Send the result as JSON
+    const languages = await Language.find(); 
+    const languageNames = [];
+
+    languages.forEach(lang => {
+      
+      Object.keys(lang.toObject()).forEach(key => {
+        if (key !== "_id" && !languageNames.includes(key)) {
+          languageNames.push(key); 
+        }
+      });
+    });
+
+    res.status(200).json(languageNames); 
   } catch (err) {
     console.error("Error retrieving languages:", err);
     res.status(500).json({ error: "An error occurred while retrieving languages" });
   }
 });
 
+// chapters
 
-// for chapters
-app.get('/api/v1/chapters', async (req, res) => {
-  const { language } = req.query;
+app.get("/api/v1/chapters", async (req, res) => {
+  const { language } = req.query; 
 
   if (!language) {
-    return res.status(400).json({ error: 'Language query parameter is required.' });
+    return res.status(400).json({ error: "Language query parameter is required" });
   }
 
   try {
-    const doc = await Language.findOne({
-      [language]: { $exists: true },
+    const languages = await Language.find(); 
+    let chapters = [];
+
+    languages.forEach(lang => {
+      const languageObject = lang.toObject();
+
+      if (languageObject[language]) {
+        const languageData = languageObject[language];
+
+       
+        const chapterKeys = Object.keys(languageData).filter(key => key.startsWith("chapter_")); 
+
+        chapterKeys.forEach(chapterKey => {
+          const chapter = languageData[chapterKey]; 
+          chapters.push({ key: chapterKey, id: chapter._id });
+        });
+      }
     });
-console.log(doc)
-    if (!doc) {
-      console.log(`No data found for language: ${language}`);
-      return res.status(404).json({ error: `No data found for language: ${language}` });
+
+    if (chapters.length > 0) {
+      res.status(200).json({ language, chapters }); 
+    } else {
+      res.status(404).json({ error: `No chapters found for language: ${language}` }); 
     }
-
-    // Use square brackets to dynamically access the correct language data
-    const chapterData = doc[language]; 
-
-    console.log(`Retrieved data for ${language}:`, chapterData);
-
-    return res.status(200).json(chapterData);
-
   } catch (err) {
-    console.error('Error retrieving chapters:', err);
-    return res.status(500).json({ error: 'An error occurred while retrieving chapters.' });
+    console.error("Error retrieving chapters:", err);
+    res.status(500).json({ error: "An error occurred while retrieving chapters" });
   }
 });
 
