@@ -39,6 +39,9 @@ app.get("/api/v1/languages", async (req, res) => {
     res.status(500).json({ error: "An error occurred while retrieving languages" });
   }
 });
+
+
+// for chapters
 app.get('/api/v1/chapters', async (req, res) => {
   const { language } = req.query;
 
@@ -50,7 +53,7 @@ app.get('/api/v1/chapters', async (req, res) => {
     const doc = await Language.findOne({
       [language]: { $exists: true },
     });
-
+console.log(doc)
     if (!doc) {
       console.log(`No data found for language: ${language}`);
       return res.status(404).json({ error: `No data found for language: ${language}` });
