@@ -83,63 +83,114 @@ const getLessonsByLanguageAndChapter = async (language, chapterId) => {
 
 
 // Function to Get Questions
-const getQuestionsByLanguageChapterLesson = async (language, chapterId, lessonId) => {
-    const pipeline = [
-      {
-        $match: { [language]: { $exists: true } }, // Ensure the language exists
-      },
-      {
-        $project: {
-          chapters: {
-            $objectToArray: `$${language}`, // Convert language object to key-value pairs
-          },
-        },
-      },
-      {
-        $unwind: "$chapters", // Split into individual chapters
-      },
-      {
-        $match: { "chapters.k": chapterId }, // Match the specified chapter
-      },
-      {
-        $project: {
-          lessons: {
-            $objectToArray: `$chapters.v.lessons`, // Convert lessons to key-value pairs
-          },
-        },
-      },
-      {
-        $unwind: "$lessons", // Split into individual lessons
-      },
-      {
-        $match: { "lessons.k": lessonId }, // Match the specified lesson
-      },
-      {
-        $project: {
-          questions: {
-            $objectToArray: "$lessons.v.questions", // Convert questions to key-value pairs
-          },
-        },
-      },
-      {
-        $unwind: {
-          path: "$questions", // Split into individual questions
-          preserveNullAndEmptyArrays: true, // Avoid breaking if questions are null/empty
-        },
-      },
-      {
-        $project: {
-          questionId: "$questions.v._id", // Question ID
-          questionText: "$questions.k",  // Question text
-        },
-      },
-    ];
-  
-    const result = await Language.aggregate(pipeline); // Execute the pipeline
-    return result.filter((doc) => doc.questionId); // Return only valid questions
-  };
-  
 
+
+const getQuestionsByLanguageChapterLesson= async (language,chapterId,lessonId) => {
+
+  const pipeline
+= [
+
+      {
+
+          $match: { 
+[language]:
+{ $exists: true
+} } // Ensure the language exists
+
+      },
+
+      {
+
+          $project: {
+
+              chapters: { $objectToArray:
+`$${language}`
+} // Convert language object to key-value pairs
+
+          }
+
+      },
+
+      {
+
+          $unwind: "$chapters"
+// Split into individual chapters
+
+      },
+
+      {
+
+          $match: { 
+"chapters.k":
+chapterId
+} // Match the specified chapter
+
+      },
+
+      {
+
+          $project: {
+
+              lessons: { $objectToArray:
+"$chapters.v.lessons"
+} // Convert lessons to key-value pairs
+
+          }
+
+      },
+
+      {
+
+          $unwind: "$lessons"
+// Split into individual lessons
+
+      },
+
+      {
+
+          $match: { 
+"lessons.k":
+lessonId
+} // Match the specified lesson
+
+      },
+
+      {
+
+          $unwind: "$lessons.v.questions"
+// Split into individual questions
+
+      },
+
+      {
+
+        $project: {
+
+          questions: "$lessons.v.questions"
+// Project the entire questions array
+
+      }
+
+      }
+
+  ];
+
+
+
+
+
+
+  const result
+= await Language.aggregate(pipeline);
+// Execute the pipeline
+
+
+
+
+  return result
+// Return only valid questions
+
+};
 // Endpoint to Get All Languages
 router.get("/v1/languages", async (req, res) => {
   try {
@@ -193,6 +244,8 @@ router.get("/v1/chapters/:language/lessons/:chapterId", async (req, res) => {
   }
 });
 // Endpoint to Get Questions by Lesson ID
+
+
 router.get("/v1/chapters/:language/lessons/:chapterId/questions/:lessonId", async (req, res) => {
     try {
       const language = req.params.language;
@@ -215,6 +268,7 @@ router.get("/v1/chapters/:language/lessons/:chapterId/questions/:lessonId", asyn
       res.status(500).json({ message: "Internal Server Error" });
     }
   });
+  
   
   
   
