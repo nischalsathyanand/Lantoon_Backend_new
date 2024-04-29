@@ -16,7 +16,7 @@ const authenticateUser = async (req, res, next) => {
         return res.status(401).json({ message: "Invalid username or password" });
       }
   
-      // Check if the provided password matches the hashed password in the database
+      
       const isMatch = await bcrypt.compare(password, user.password);
   
       if (!isMatch) {
@@ -67,39 +67,42 @@ const generateToken = (req, res, next) => {
 
 // Endpoint for user sign-up
 router.post("/v1/signup", async (req, res) => {
-  const { username, password, role } = req.body;
-  console.log(username);
-
-  if (!username || !password || !role) {
-    return res.status(400).json({ message: "All fields are required" });
-  }
-
-  try {
-    const existingUser = await UserData.findOne({ username });
-
-    if (existingUser) {
-      return res.status(409).json({ message: "Username already exists" });
+    const { username, password, role } = req.body;
+  
+    if (!username || !password || !role) {
+      return res.status(400).json({ message: "All fields are required" });
     }
-
-    
-    const saltRounds = 10; 
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-    const newUser = new UserData({
-      username,
-      password: hashedPassword,
-      role,
-    });
-
-    await newUser.save();
-
-    res.status(201).json({ message: "User created successfully" }); // Send success response
-  } catch (error) {
-    console.error("Error creating user:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-});
-
+  
+    // Ensure the role is 'superadmin' before proceeding
+    if (role !== 'superadmin') {
+      return res.status(403).json({ message: "Only 'superadmin' role is allowed to sign up" });
+    }
+  
+    try {
+      const existingUser = await UserData.findOne({ username });
+  
+      if (existingUser) {
+        return res.status(409).json({ message: "Username already exists" });
+      }
+  
+      const saltRounds = 10; 
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+  
+      const newUser = new UserData({
+        username,
+        password: hashedPassword,
+        role,
+      });
+  
+      await newUser.save();
+  
+      res.status(201).json({ message: "User created successfully" }); // Send success response
+    } catch (error) {
+      console.error("Error creating user:", error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  });
+  
 
 // Endpoint for user login with middleware
 router.post("/v1/login", authenticateUser, generateToken, (req, res) => {
@@ -116,4 +119,4 @@ router.post("/v1/login", authenticateUser, generateToken, (req, res) => {
     });
   });
 
-module.exports = router;
+module.exports=router;
