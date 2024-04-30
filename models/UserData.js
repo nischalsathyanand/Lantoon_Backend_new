@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
-
 const userdataSchema = new Schema({
   username: {
     type: String,
@@ -10,16 +9,30 @@ const userdataSchema = new Schema({
   },
   password: {
     type: String,
-    required: true, 
+    required: true,
   },
   role: {
     type: String,
-    enum: ["superadmin", "instituteadmin", "student"], 
+    enum: ["superadmin", "instituteadmin", "student"],
     required: true,
+  },
+  lastLoggedInTime: {
+    type: Date,
+    default: null,
+  },
+  instituteName: {
+    type: String,
+    default: null,
+  },
+  instituteKey: {
+    type: String, // Removed unique constraint
+  },
+  chaptersCompleted: {
+    type: [String],
+    default: [],
   },
 });
 
+const UserData = mongoose.model("UserData", userdataSchema);
 
-const UserData = mongoose.model("UserData", userdataSchema); 
-
-module.exports = UserData; 
+module.exports = UserData;
