@@ -23,7 +23,7 @@ mongoose
 
 
 //router
-let api = require("./router/api");
+let api = require("./router/course");
 app.use("/api", api);
 let user = require("./router/user");
 app.use("/user", user);
