@@ -1,4 +1,4 @@
-const Language = require("../router/course");
+const Language = require("../models/course");
 
 // Function to Get All Languages
 const getAllLanguages = async (req, res) => {
@@ -15,12 +15,14 @@ const getAllLanguages = async (req, res) => {
     result[0].keys.forEach((key) => {
       formattedResult[key] = key;
     });
+ 
 
     const languages = Object.values(formattedResult);
+   
     res.status(200).json(languages);
   } catch (error) {
     console.error("Error fetching languages:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+  res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
