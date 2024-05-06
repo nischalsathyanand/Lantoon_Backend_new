@@ -15,19 +15,31 @@ const questionSchema = new mongoose.Schema({
 const lessonSchema = new mongoose.Schema({
   _id: { type: String, required: true },
   name: { type: String, required: true },
-  questions: [questionSchema],
+  //description: { type: String }, // New optional field
+  questions: {
+    type: Map,
+    of: questionSchema, // Storing questions in a map
+  },
 });
 
 const chapterSchema = new mongoose.Schema({
   _id: { type: String, required: true },
   name: { type: String, required: true },
-  lessons: [lessonSchema],
+ // description: { type: String }, // New optional field
+  lessons: {
+    type: Map,
+    of: lessonSchema, // Storing lessons in a map
+  }
 });
 
 const languageSchema = new mongoose.Schema({
   _id: { type: String, required: true },
   name: { type: String, required: true },
-  chapters: [chapterSchema],
+ // created_at: { type: Date, default: Date.now }, // Track when it was created
+  chapters: {
+    type: Map,
+    of: chapterSchema, // Storing chapters in a map
+  },
 });
 
 const Language = mongoose.model('Language', languageSchema);
