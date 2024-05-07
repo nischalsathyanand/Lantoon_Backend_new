@@ -60,7 +60,7 @@ const getChaptersByLanguage = async (req, res) => {
 const getLessonsByLanguageAndChapter = async (req, res) => {
   try {
     const { languageId, chapterId } = req.params;
-
+   
     if (!languageId || !chapterId) {
       return res
         .status(400)
@@ -117,7 +117,6 @@ const getLessonsByLanguageAndChapter = async (req, res) => {
 const getQuestionsByLanguageChapterLesson = async (req, res) => {
   try {
     const { languageId, chapterId, lessonId } = req.params;
-  
 
     if (!languageId || !chapterId || !lessonId) {
       return res.status(400).json({

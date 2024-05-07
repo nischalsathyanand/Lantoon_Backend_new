@@ -1,21 +1,33 @@
 const Language = require("../models/course");
-const mongoose = require("mongoose");
+const generateId = require("../utils/genarateId");
 
+// Create a new language
 const createLanguage = async (req, res) => {
   try {
-    const { _id, name } = req.body;
+    const { name } = req.body;
+
     if (!name) {
       return res.status(400).json({ message: "Language name is required." });
     }
 
+    // Check if a language with the same name already exists
+    const existingLanguage = await Language.findOne({ name });
+
+    if (existingLanguage) {
+      return res
+        .status(409)
+        .json({ message: "Language with this name already exists." });
+    }
+
+    const _id = generateId();
+
     const newLanguage = new Language({ _id, name });
     const savedLanguage = await newLanguage.save();
-    res
-      .status(201)
-      .json({
-        message: "Language created successfully.",
-        language: savedLanguage,
-      });
+
+    res.status(201).json({
+      message: "Language created successfully.",
+      language: savedLanguage,
+    });
   } catch (error) {
     console.error("Error creating language:", error);
     res
@@ -24,8 +36,8 @@ const createLanguage = async (req, res) => {
   }
 };
 
-// Update a language by ID
-const updateLanguageById = async (req, res) => {
+// Update a specific chapter in a language
+const updateLanguage= async (req, res) => {
   try {
     const { languageId } = req.params;
     const { name } = req.body;
@@ -52,15 +64,15 @@ const updateLanguageById = async (req, res) => {
   }
 };
 
-// Delete a language by ID
-const deleteLanguageById = async (req, res) => {
+// Delete a specific chapter from a language
+const deleteLanguage = async (req, res) => {
   try {
     const { languageId } = req.params;
 
     const deletedLanguage = await Language.findByIdAndDelete(languageId);
 
     if (!deletedLanguage) {
-      return res.status(404).json({ message: "Language not found." }); // If ID doesn't exist
+      return res.status(404).json({ message: "Language not found." });
     }
 
     res.status(200).json({
@@ -74,4 +86,8 @@ const deleteLanguageById = async (req, res) => {
   }
 };
 
-module.exports = { createLanguage, updateLanguageById, deleteLanguageById };
+module.exports = {
+  createLanguage,
+  updateLanguage,
+  deleteLanguage,
+};

@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+
 const {
   getAllLanguages,
   getChaptersByLanguage,
@@ -8,46 +9,33 @@ const {
 } = require("../controllers/courseController");
 
 const {
-  createLanguage,updateLanguageById,deleteLanguageById
-}=require("../controllers/languageController")
-
+  createLanguage,
+  updateLanguage,
+  deleteLanguage,
+} = require("../controllers/languageController");
 
 const {
   createChapter,
-  updateChapterById,
-  deleteChapterById,
+  updateChapter,
+  deleteChapter,
 } = require("../controllers/chapterController");
 
-// Endpoints for all Course
+// Endpoints for Languages
 router.get("/v1/languages", getAllLanguages);
+router.post("/v1/languages", createLanguage);
+router.put("/v1/languages/:languageId", updateLanguage);
+router.delete("/v1/languages/:languageId", deleteLanguage);
 
-router.get("/v1/language/:languageId/chapters", getChaptersByLanguage);
+// Endpoints for Chapters within a Language
+router.get("/v1/languages/:languageId/chapters", getChaptersByLanguage);
+router.post("/v1/languages/:languageId/chapters", createChapter);
+router.put("/v1/languages/:languageId/chapters/:chapterId", updateChapter);
+router.delete("/v1/languages/:languageId/chapters/:chapterId", deleteChapter);
 
-router.get(
-  "/v1/chapters/:languageId/lessons/:chapterId",
-  getLessonsByLanguageAndChapter
-);
+// Endpoints for Lessons within a Chapter
+router.get("/v1/languages/:languageId/chapters/:chapterId/lessons", getLessonsByLanguageAndChapter);
 
-router.get(
-  "/v1/chapters/:languageId/lessons/:chapterId/questions/:lessonId",
-  getQuestionsByLanguageChapterLesson
-);
-// Crud for language
-router.post("/v1/courses/language", createLanguage);
-router.put("/v1/courses/languages/:languageId", updateLanguageById); 
-router.delete("/v1/courses/languages/:languageId", deleteLanguageById);
-
-
-//crud for chapter
-router.post("/v1/courses/languages/:languageId/chapters", createChapter);
-
-router.put(
-  "/v1/courses/languages/:languageId/chapters/:chapterId",
-  updateChapterById
-);
-router.delete(
-  "/v1/courses/languages/:languageId/chapters/:chapterId",
-  deleteChapterById
-);
+// Endpoints for Questions within a Lesson
+router.get("/v1/languages/:languageId/chapters/:chapterId/lessons/:lessonId/questions", getQuestionsByLanguageChapterLesson);
 
 module.exports = router;

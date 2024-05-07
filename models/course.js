@@ -1,7 +1,7 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
+// Question Schema
 const questionSchema = new mongoose.Schema({
-  _id: { type: String, required: true },
   order_id: { type: Number, required: true },
   question_type: { type: String, required: true },
   text: { type: String, required: true },
@@ -12,37 +12,35 @@ const questionSchema = new mongoose.Schema({
   answerText: { type: String },
 });
 
+// Lesson Schema
 const lessonSchema = new mongoose.Schema({
   _id: { type: String, required: true },
   name: { type: String, required: true },
-  //description: { type: String }, // New optional field
-  questions: {
-    type: Map,
-    of: questionSchema, // Storing questions in a map
-  },
+  questions: [questionSchema], // Array of questions
 });
 
+// Chapter Schema
 const chapterSchema = new mongoose.Schema({
   _id: { type: String, required: true },
   name: { type: String, required: true },
- // description: { type: String }, // New optional field
   lessons: {
     type: Map,
-    of: lessonSchema, // Storing lessons in a map
-  }
-});
-
-const languageSchema = new mongoose.Schema({
-  _id: { type: String, required: true },
-  name: { type: String, required: true },
- // created_at: { type: Date, default: Date.now }, // Track when it was created
-  chapters: {
-    type: Map,
-    of: chapterSchema, // Storing chapters in a map
+    of: lessonSchema,
+    default: new Map(), // Ensure lessons are initialized as a Map
   },
 });
 
-const Language = mongoose.model('Language', languageSchema);
+// Language Schema
+const languageSchema = new mongoose.Schema({
+  _id: { type: String, required: true },
+  name: { type: String, required: true },
+  chapters: {
+    type: Map,
+    of: chapterSchema,
+    default: new Map(), // Ensure chapters are initialized as a Map
+  },
+});
 
+const Language = mongoose.model("Language", languageSchema);
 
-module.exports=Language;
+module.exports = Language;
