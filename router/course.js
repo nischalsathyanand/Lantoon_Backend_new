@@ -19,6 +19,7 @@ const {
   updateChapter,
   deleteChapter,
 } = require("../controllers/chapterController");
+const { createLesson, updateLesson, deleteLesson }=require("../controllers/lessonController")
 
 // Endpoints for Languages
 router.get("/v1/languages", getAllLanguages);
@@ -34,6 +35,9 @@ router.delete("/v1/languages/:languageId/chapters/:chapterId", deleteChapter);
 
 // Endpoints for Lessons within a Chapter
 router.get("/v1/languages/:languageId/chapters/:chapterId/lessons", getLessonsByLanguageAndChapter);
+router.post("/v1/languages/:languageId/chapters/:chapterId/lessons", createLesson);
+router.put("/v1/languages/:languageId/chapters/:chapterId/lessons/:lessonId", updateLesson); 
+router.delete("/v1/languages/:languageId/chapters/:chapterId/lessons/:lessonId", deleteLesson); 
 
 // Endpoints for Questions within a Lesson
 router.get("/v1/languages/:languageId/chapters/:chapterId/lessons/:lessonId/questions", getQuestionsByLanguageChapterLesson);
