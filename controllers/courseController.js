@@ -35,7 +35,9 @@ const getChaptersByLanguage = async (req, res) => {
     res.status(200).json({ chapters: chapterDetails });
   } catch (error) {
     console.error("Error retrieving chapters:", error);
-    res.status(500).json({ message: "An error occurred while retrieving chapters." });
+    res
+      .status(500)
+      .json({ message: "An error occurred while retrieving chapters." });
   }
 };
 
@@ -45,19 +47,19 @@ const getLessonsByLanguageAndChapter = async (req, res) => {
     const { languageId, chapterId } = req.params;
 
     if (!languageId || !chapterId) {
-      return res.status(400).json({ message: "Language ID and Chapter ID are required." });
+      return res
+        .status(400)
+        .json({ message: "Language ID and Chapter ID are required." });
     }
 
-    // Find the language by its ID
     const language = await Language.findById(languageId);
 
     if (!language) {
       return res.status(404).json({ message: "Language not found." });
     }
 
-    const chapters = language.chapters; // Access the chapters map
+    const chapters = language.chapters;
 
-    // Find the chapter with the matching inner `_id`
     let targetChapter = null;
     for (const key of chapters.keys()) {
       if (chapters.get(key)._id === chapterId) {
@@ -70,31 +72,34 @@ const getLessonsByLanguageAndChapter = async (req, res) => {
       return res.status(404).json({ message: "Chapter not found." });
     }
 
-    // If the chapter has lessons, extract them
-    const lessons = targetChapter.lessons ? Array.from(targetChapter.lessons.values()) : [];
+    const lessons = targetChapter.lessons
+      ? Array.from(targetChapter.lessons.values())
+      : [];
 
     const lessonDetails = lessons.map((lesson) => ({
       _id: lesson._id,
       name: lesson.name,
     }));
 
-    // Return the lesson details
     res.status(200).json({ lessons: lessonDetails });
   } catch (error) {
     console.error("Error retrieving lessons:", error);
-    res.status(500).json({ message: "An error occurred while retrieving lessons." });
+    res
+      .status(500)
+      .json({ message: "An error occurred while retrieving lessons." });
   }
 };
 
-
-
-// Function to Get Questions by Language, Chapter, and Lesson
 const getQuestionsByLanguageChapterLesson = async (req, res) => {
   try {
     const { languageId, chapterId, lessonId } = req.params;
 
     if (!languageId || !chapterId || !lessonId) {
-      return res.status(400).json({ message: "Language ID, Chapter ID, and Lesson ID are required." });
+      return res
+        .status(400)
+        .json({
+          message: "Language ID, Chapter ID, and Lesson ID are required.",
+        });
     }
 
     const language = await Language.findById(languageId);
@@ -103,10 +108,9 @@ const getQuestionsByLanguageChapterLesson = async (req, res) => {
       return res.status(404).json({ message: "Language not found." });
     }
 
-    const chapters = language.chapters; // Access the chapters map
+    const chapters = language.chapters;
     let targetChapter = null;
 
-    // Find the correct chapter by its inner `_id`
     for (const key of chapters.keys()) {
       if (chapters.get(key)._id === chapterId) {
         targetChapter = chapters.get(key);
@@ -118,16 +122,18 @@ const getQuestionsByLanguageChapterLesson = async (req, res) => {
       return res.status(404).json({ message: "Chapter not found." });
     }
 
-    // Find the specific lesson by its inner `_id`
-    const lessons = targetChapter.lessons ? Array.from(targetChapter.lessons.values()) : [];
+    const lessons = targetChapter.lessons
+      ? Array.from(targetChapter.lessons.values())
+      : [];
     const targetLesson = lessons.find((lesson) => lesson._id === lessonId);
 
     if (!targetLesson) {
       return res.status(404).json({ message: "Lesson not found." });
     }
 
-    // Extract the questions from the lesson (if available)
-    const questions = targetLesson.questions ? Array.from(targetLesson.questions.values()) : [];
+    const questions = targetLesson.questions
+      ? Array.from(targetLesson.questions.values())
+      : [];
 
     const questionDetails = questions.map((question) => ({
       order_id: question.order_id,
@@ -140,14 +146,14 @@ const getQuestionsByLanguageChapterLesson = async (req, res) => {
       answerText: question.answerText,
     }));
 
-    // Return the question details
     res.status(200).json({ questions: questionDetails });
   } catch (error) {
     console.error("Error retrieving questions:", error);
-    res.status(500).json({ message: "An error occurred while retrieving questions." });
+    res
+      .status(500)
+      .json({ message: "An error occurred while retrieving questions." });
   }
 };
-
 
 module.exports = {
   getAllLanguages,
