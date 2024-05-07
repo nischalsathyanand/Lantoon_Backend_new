@@ -7,7 +7,7 @@ dist
 *.log
 logs
 node_modules
-
+.env
 # VisualStudioCode #
 .history
 !.vscode/tasks.json

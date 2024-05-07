@@ -3,56 +3,39 @@ const Language = require("../models/course");
 // Function to Get All Languages
 const getAllLanguages = async (req, res) => {
   try {
-    const language = await Language.find({}, "_id name");
-
-    res.json(language);
+    const languages = await Language.find({}, "_id name"); // Only fetching IDs and names
+    res.json(languages);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 // Function to Get Chapters by Language
 const getChaptersByLanguage = async (req, res) => {
   try {
-    const languageId = req.params.languageId;
+    const { languageId } = req.params;
 
     if (!languageId) {
       return res.status(400).json({ message: "Language ID is required." });
     }
 
-    const language = await Language.findById(languageId);
+    const language = await Language.findById(languageId, "chapters");
 
     if (!language) {
       return res.status(404).json({ message: "Language not found." });
     }
 
-    const chapterDetails = [];
+    const chapters = Array.from(language.chapters.values());
 
-    for (const key in language._doc) {
-      if (key.startsWith("chapter_")) {
-        const chapter = language._doc[key];
-        if (
-          chapter &&
-          typeof chapter === "object" &&
-          chapter._id &&
-          chapter.name
-        ) {
-          chapterDetails.push({ _id: chapter._id, name: chapter.name });
-        }
-      }
-    }
-
-    if (chapterDetails.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No chapters found for this language." });
-    }
+    const chapterDetails = chapters.map((chapter) => ({
+      _id: chapter._id,
+      name: chapter.name,
+    }));
 
     res.status(200).json({ chapters: chapterDetails });
   } catch (error) {
     console.error("Error retrieving chapters:", error);
-    res
-      .status(500)
-      .json({ message: "An error occurred while retrieving chapters." });
+    res.status(500).json({ message: "An error occurred while retrieving chapters." });
   }
 };
 
@@ -60,58 +43,50 @@ const getChaptersByLanguage = async (req, res) => {
 const getLessonsByLanguageAndChapter = async (req, res) => {
   try {
     const { languageId, chapterId } = req.params;
-   
+
     if (!languageId || !chapterId) {
-      return res
-        .status(400)
-        .json({ message: "Language ID and Chapter ID are required." });
+      return res.status(400).json({ message: "Language ID and Chapter ID are required." });
     }
 
+    // Find the language by its ID
     const language = await Language.findById(languageId);
 
     if (!language) {
       return res.status(404).json({ message: "Language not found." });
     }
 
-    let chapter = null;
-    for (const key in language._doc) {
-      if (key.startsWith("chapter_")) {
-        const ch = language._doc[key];
-        if (ch && ch._id === chapterId) {
-          chapter = ch;
-          break;
-        }
+    const chapters = language.chapters; // Access the chapters map
+
+    // Find the chapter with the matching inner `_id`
+    let targetChapter = null;
+    for (const key of chapters.keys()) {
+      if (chapters.get(key)._id === chapterId) {
+        targetChapter = chapters.get(key);
+        break;
       }
     }
 
-    if (!chapter) {
-      return res.status(404).json({
-        message: `Chapter with ID ${chapterId} not found in this language.`,
-      });
+    if (!targetChapter) {
+      return res.status(404).json({ message: "Chapter not found." });
     }
 
-    const lessons = [];
-    if (chapter.lessons) {
-      for (const lessonKey in chapter.lessons) {
-        const lesson = chapter.lessons[lessonKey];
-        lessons.push({ _id: lesson._id, name: lesson.name });
-      }
-    }
+    // If the chapter has lessons, extract them
+    const lessons = targetChapter.lessons ? Array.from(targetChapter.lessons.values()) : [];
 
-    if (lessons.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No lessons found for this chapter." });
-    }
+    const lessonDetails = lessons.map((lesson) => ({
+      _id: lesson._id,
+      name: lesson.name,
+    }));
 
-    res.status(200).json({ lessons });
+    // Return the lesson details
+    res.status(200).json({ lessons: lessonDetails });
   } catch (error) {
     console.error("Error retrieving lessons:", error);
-    res
-      .status(500)
-      .json({ message: "An error occurred while retrieving lessons." });
+    res.status(500).json({ message: "An error occurred while retrieving lessons." });
   }
 };
+
+
 
 // Function to Get Questions by Language, Chapter, and Lesson
 const getQuestionsByLanguageChapterLesson = async (req, res) => {
@@ -119,9 +94,7 @@ const getQuestionsByLanguageChapterLesson = async (req, res) => {
     const { languageId, chapterId, lessonId } = req.params;
 
     if (!languageId || !chapterId || !lessonId) {
-      return res.status(400).json({
-        message: "Language ID, Chapter ID, and Lesson ID are required.",
-      });
+      return res.status(400).json({ message: "Language ID, Chapter ID, and Lesson ID are required." });
     }
 
     const language = await Language.findById(languageId);
@@ -130,71 +103,51 @@ const getQuestionsByLanguageChapterLesson = async (req, res) => {
       return res.status(404).json({ message: "Language not found." });
     }
 
-    let chapter = null;
-    for (const key in language._doc) {
-      if (key.startsWith("chapter_")) {
-        const ch = language._doc[key];
-        if (ch && ch._id === chapterId) {
-          chapter = ch;
-          break;
-        }
+    const chapters = language.chapters; // Access the chapters map
+    let targetChapter = null;
+
+    // Find the correct chapter by its inner `_id`
+    for (const key of chapters.keys()) {
+      if (chapters.get(key)._id === chapterId) {
+        targetChapter = chapters.get(key);
+        break;
       }
     }
 
-    if (!chapter) {
-      return res.status(404).json({
-        message: `Chapter with ID ${chapterId} not found in this language.`,
-      });
+    if (!targetChapter) {
+      return res.status(404).json({ message: "Chapter not found." });
     }
 
-    let lesson = null;
-    if (chapter.lessons) {
-      for (const lessonKey in chapter.lessons) {
-        const ls = chapter.lessons[lessonKey];
-        if (ls && ls._id === lessonId) {
-          lesson = ls;
-          break;
-        }
-      }
+    // Find the specific lesson by its inner `_id`
+    const lessons = targetChapter.lessons ? Array.from(targetChapter.lessons.values()) : [];
+    const targetLesson = lessons.find((lesson) => lesson._id === lessonId);
+
+    if (!targetLesson) {
+      return res.status(404).json({ message: "Lesson not found." });
     }
 
-    if (!lesson) {
-      return res.status(404).json({
-        message: `Lesson with ID ${lessonId} not found in this chapter.`,
-      });
-    }
+    // Extract the questions from the lesson (if available)
+    const questions = targetLesson.questions ? Array.from(targetLesson.questions.values()) : [];
 
-    const questions = [];
-    if (lesson.questions) {
-      for (const question of lesson.questions) {
-        questions.push({
-          _id: question._id,
-          order_id: question.order_id,
-          question_type: question.question_type,
-          text: question.text,
-          image1: question.image1,
-          image2: question.image2,
-          audio1: question.audio1,
-          audio2: question.audio2,
-          answerText: question.answerText,
-        });
-      }
-    }
+    const questionDetails = questions.map((question) => ({
+      order_id: question.order_id,
+      question_type: question.question_type,
+      text: question.text,
+      image1: question.image1,
+      image2: question.image2,
+      audio1: question.audio1,
+      audio2: question.audio2,
+      answerText: question.answerText,
+    }));
 
-    if (questions.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No questions found for this lesson." });
-    }
-
-    res.status(200).json({ questions });
+    // Return the question details
+    res.status(200).json({ questions: questionDetails });
   } catch (error) {
     console.error("Error retrieving questions:", error);
-    res
-      .status(500)
-      .json({ message: "An error occurred while retrieving questions." });
+    res.status(500).json({ message: "An error occurred while retrieving questions." });
   }
 };
+
 
 module.exports = {
   getAllLanguages,
