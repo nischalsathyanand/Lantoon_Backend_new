@@ -10,7 +10,9 @@ const questionSchema = new mongoose.Schema({
   audio1: { type: String },
   audio2: { type: String },
   answerText: { type: String },
-});
+},
+{ _id: false } // Disable the auto-generated _id field
+);
 
 // Lesson Schema
 const lessonSchema = new mongoose.Schema({
